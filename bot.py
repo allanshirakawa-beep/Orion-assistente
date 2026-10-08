@@ -11,7 +11,7 @@ app_web = Flask(__name__)
 
 @app_web.route("/")
 def home():
-    return "ORION ONLINE"
+    return "ORION ONLINE", 200
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,11 +31,21 @@ async def mensagem(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def iniciar_web():
     porta = int(os.environ.get("PORT", 10000))
-    app_web.run(host="0.0.0.0", port=porta)
+
+    app_web.run(
+        host="0.0.0.0",
+        port=porta,
+        debug=False,
+        use_reloader=False
+    )
 
 
 def main():
-    threading.Thread(target=iniciar_web, daemon=True).start()
+    servidor = threading.Thread(target=iniciar_web)
+    servidor.daemon = True
+    servidor.start()
+
+    print("ORION ONLINE")
 
     app = Application.builder().token(TOKEN).build()
 
@@ -43,8 +53,6 @@ def main():
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, mensagem)
     )
-
-    print("ORION ONLINE")
 
     app.run_polling()
 
