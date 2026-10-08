@@ -2,7 +2,13 @@ import os
 import threading
 from flask import Flask
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters
+)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
@@ -14,10 +20,24 @@ def home():
     return "ORION ONLINE", 200
 
 
+# =========================
+# COMANDOS DO ORION
+# =========================
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Olá! Eu sou o Orion.\n\n"
-        "Estou online e pronto para receber seus comandos."
+        "Seu assistente pessoal está online.\n\n"
+        "Digite /ajuda para ver o que posso fazer."
+    )
+
+
+async def ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "COMANDOS DO ORION\n\n"
+        "/start - Iniciar o Orion\n"
+        "/ajuda - Ver os comandos disponíveis\n\n"
+        "Novos recursos serão adicionados em breve."
     )
 
 
@@ -28,6 +48,10 @@ async def mensagem(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Orion recebeu:\n\n{texto}"
     )
 
+
+# =========================
+# SERVIDOR WEB
+# =========================
 
 def iniciar_web():
     porta = int(os.environ.get("PORT", 10000))
@@ -40,6 +64,10 @@ def iniciar_web():
     )
 
 
+# =========================
+# INICIALIZAÇÃO
+# =========================
+
 def main():
     servidor = threading.Thread(target=iniciar_web)
     servidor.daemon = True
@@ -50,8 +78,13 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("ajuda", ajuda))
+
     app.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, mensagem)
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            mensagem
+        )
     )
 
     app.run_polling()
